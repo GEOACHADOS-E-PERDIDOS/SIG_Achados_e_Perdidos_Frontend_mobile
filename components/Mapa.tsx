@@ -10,7 +10,6 @@ type Props = {
 };
 
 export default function Mapa({ refreshKey, postos }: Props) {
-  // Desestruturando as novas propriedades vindas do useMapa
   const {
     busca,
     setBusca,
@@ -26,7 +25,7 @@ export default function Mapa({ refreshKey, postos }: Props) {
     objetoSelecionado,
     setObjetoSelecionado,
     carregandoDetalhes,
-    abrirDetalhe,
+    abrirDetalhe,           
   } = useMapa({ refreshKey });
 
   return (
@@ -105,7 +104,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
 
-            {/* Feedback visual enquanto a requisição do hook acontece */}
             {carregandoDetalhes ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#1e2a38" />
@@ -120,9 +118,10 @@ export default function Mapa({ refreshKey, postos }: Props) {
                     descricao: objetoSelecionado.descricao,
                     enderecoEncontro: objetoSelecionado.enderecoEncontro || "Consultar localização",
                     dataEncontro: objetoSelecionado.dataEncontro || new Date().toISOString(),
-                    status: objetoSelecionado.status === "PERDIDO" ? "DESCARTADO" : "DISPONIVEL",
+                    status: objetoSelecionado.status,
                     categorias: objetoSelecionado.categorias || [],
                     caminhosImagens: objetoSelecionado.caminhosImagens,
+                    nomePosto: objetoSelecionado.nomePosto,
                   }}
                 />
               )
@@ -132,7 +131,7 @@ export default function Mapa({ refreshKey, postos }: Props) {
               style={styles.btnFechar}
               onPress={() => setObjetoSelecionado(null)}
             >
-              <Text style={styles.btnText}>Fechar</Text>
+              <Text style={styles.btnText}>Fechar Detalhes</Text>
             </TouchableOpacity>
 
           </View>
@@ -257,7 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#555",
   },
-  activePosto: { backgroundColor: "#d1c4e9" },
+  activePosto: { backgroundColor: "#69ffa7" },
   activePerdido: { backgroundColor: "#ffcdd2" },
   activeAchado: { backgroundColor: "#bbdefb" },
   modalOverlay: {

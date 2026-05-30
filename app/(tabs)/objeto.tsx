@@ -106,15 +106,22 @@ export default function ObjetosScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#1e2a38" style={{ flex: 1 }} />
       ) : (
-        < FlatList
+        <FlatList
           data={objetos}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listaObjetos}
           renderItem={({ item }) => (
             <ObjetoCard
               obj={{
-                ...item,
+                id: item.id,
+                nome: item.nome,
+                descricao: item.descricao,
+                enderecoEncontro: item.enderecoEncontro || "Consultar localização",
+                dataEncontro: item.dataEncontro,
+                status: item.status, 
+                categorias: item.categorias || [],
                 imagemCompleta: item.caminhosImagens?.[0] ?? null,
+                nomePosto: item.nomePosto, 
               }}
               onDelete={handleDelete}
               onClick={() => setObjetoSelecionado(item)}
@@ -138,7 +145,19 @@ export default function ObjetosScreen() {
 
             <ScrollView style={{ marginBottom: 10 }}>
               {objetoSelecionado && (
-                <ObjetoDetalhe obj={objetoSelecionado} />
+                <ObjetoDetalhe 
+                  obj={{
+                    id: objetoSelecionado.id,
+                    nome: objetoSelecionado.nome,
+                    descricao: objetoSelecionado.descricao,
+                    enderecoEncontro: objetoSelecionado.enderecoEncontro || "Consultar localização",
+                    dataEncontro: objetoSelecionado.dataEncontro,
+                    status: objetoSelecionado.status,
+                    categorias: objetoSelecionado.categorias || [],
+                    caminhosImagens: objetoSelecionado.caminhosImagens || [],
+                    nomePosto: objetoSelecionado.nomePosto, 
+                  }} 
+                />
               )}
             </ScrollView>
 
@@ -157,9 +176,6 @@ export default function ObjetosScreen() {
   );
 }
 
-/* ===================================================== */
-/* ESTILOS (CSS ESTILIZADO) */
-/* ===================================================== */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

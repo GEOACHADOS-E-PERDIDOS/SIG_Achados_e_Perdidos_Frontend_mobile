@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
-// 1. Certifique-se de que ambas as funções estão importadas do seu service
 import { buscarObjetoPorId, buscarImagens } from "../services/ObjetoService"; 
+// Importando o service de busca de postos
+import { buscarPostoPorId } from "../services/PostoService"; 
 
 export type ObjetoMapa = {
   id: number;
@@ -44,23 +45,32 @@ export function useMapa({ refreshKey }: UseMapaProps) {
     }
   };
 
-  // 🔥 2. abrirDetalhe atualizado usando o exemplo de montagem de imagens
   const abrirDetalhe = async (id: number) => {
     setCarregandoDetalhes(true);
     try {
-      // Busca o objeto estruturado do backend
       const objeto = await buscarObjetoPorId(id);
       
-      // Isola a lista de nomes de arquivos de imagem (ex: ["foto1.jpg", "foto2.png"])
+      // Processamento das imagens em Base64
       const caminhos: string[] = objeto.caminhosImagens ?? [];
-      
-      // Converte a lista de nomes de arquivo em strings Base64 { uri: "data:..." }
       const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
 
-      // Monta o objeto final injetando as imagens convertidas
+      let nomePostoVinculado = "";
+
+      // 🔥 Busca os dados do posto se ele existir no objeto achado
+      if (objeto.postoId) {
+        try {
+          const posto = await buscarPostoPorId(objeto.postoId);
+          nomePostoVinculado = posto.nome;
+        } catch (postoErr) {
+          console.log("Erro ao buscar posto por ID:", postoErr);
+          nomePostoVinculado = "Posto não encontrado";
+        }
+      }
+
       const objetoCompletoComImagens = {
         ...objeto,
         caminhosImagens: imagens,
+        nomePosto: nomePostoVinculado, // Armazena o nome do posto para usarmos na View
       };
 
       setObjetoSelecionado(objetoCompletoComImagens);

@@ -25,10 +25,10 @@ type Objeto = {
   descricao: string;
   enderecoEncontro: string;
   dataEncontro: string;
-  nomePosto?: string;
+  nomePosto?: string; 
   caminhosImagens?: ImagemMobile[];
   categorias?: Categoria[];
-  status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO";
+  status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO" | "PERDIDO"; 
 };
 
 type Props = {
@@ -45,7 +45,7 @@ export default function ObjetoDetalhe({ obj }: Props) {
     switch (status) {
       case "DISPONIVEL": return "#2ecc71";
       case "DEVOLVIDO": return "#3498db";
-      default: return "#e74c3c";
+      case "PERDIDO": return "#e74c3c";
     }
   };
 
@@ -60,20 +60,16 @@ export default function ObjetoDetalhe({ obj }: Props) {
       {/* TÍTULO */}
       <Text style={styles.title}>{obj.nome}</Text>
 
-      {/* CARROSSEL DE IMAGENS NATIVO */}
+      {/* CARROSSEL DE IMAGENS */}
       <View style={styles.imageSectionContainer}>
         {obj.caminhosImagens && obj.caminhosImagens.length > 0 ? (
-
           obj.caminhosImagens.length === 1 ? (
-            
-            /* Ajustado: View em volta da imagem única para garantir a centralização */
             <View style={styles.imagemUnicaContainer}>
               <Image
                 source={{ uri: obj.caminhosImagens[0].uri }}
                 style={styles.imagemUnica}
               />
             </View>
-
           ) : (
             <>
               <ScrollView
@@ -85,7 +81,6 @@ export default function ObjetoDetalhe({ obj }: Props) {
                 scrollEventThrottle={16}
               >
                 {obj.caminhosImagens.map((img, index) => (
-                  /* Ajustado: Envolvemos cada imagem do carrossel em uma View centralizada */
                   <View key={index} style={styles.objetoImagemContainer}>
                     <Image
                       source={{ uri: img.uri }}
@@ -95,7 +90,6 @@ export default function ObjetoDetalhe({ obj }: Props) {
                 ))}
               </ScrollView>
 
-              {/* Renderização dos pontinhos indicadores */}
               <View style={styles.paginationContainer}>
                 {obj.caminhosImagens.map((_, index) => (
                   <View
@@ -109,15 +103,10 @@ export default function ObjetoDetalhe({ obj }: Props) {
               </View>
             </>
           )
-
         ) : (
-
           <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>
-              Sem imagem
-            </Text>
+            <Text style={styles.placeholderText}>Sem imagem</Text>
           </View>
-
         )}
       </View>
 
@@ -128,13 +117,19 @@ export default function ObjetoDetalhe({ obj }: Props) {
         </Text>
 
         <Text style={styles.infoParagraph}>
-          <Text style={styles.bold}>Endereço:</Text> {obj.enderecoEncontro}
+          <Text style={styles.bold}>
+            {obj.status === "PERDIDO" ? "Região onde foi perdido:" : "Local do Encontro:"}
+          </Text>{" "}
+          {obj.enderecoEncontro}
         </Text>
 
         {obj.nomePosto && (
-          <Text style={styles.infoParagraph}>
-            <Text style={styles.bold}>Posto:</Text> {obj.nomePosto}
-          </Text>
+          <View>
+            <Text style={styles.infoParagraph}>
+              <Text style={styles.boldPosto}>Posto de Retirada Atual:</Text>{" "}
+              <Text style={styles.txtPosto}>{obj.nomePosto}</Text>
+            </Text>
+          </View>
         )}
 
         <Text style={styles.infoParagraph}>
@@ -182,7 +177,6 @@ const styles = StyleSheet.create({
   imageScroll: {
     alignItems: "center",
   },
-  /* NOVO: Container para centralizar perfeitamente a imagem única alta */
   imagemUnicaContainer: {
     flex: 1,
     justifyContent: "center",
@@ -193,7 +187,6 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "contain",
   },
-  /* NOVO: Container para centralizar cada imagem alta dentro do ScrollView */
   objetoImagemContainer: {
     width: width * 0.78,
     height: 200,
@@ -251,6 +244,23 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "700",
     color: "#1e2a38",
+    textTransform: "capitalize"
+  },
+  postoDestaqueContainer: {
+    backgroundColor: "#f0f4f8",
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderColor: "#3498db",
+    marginVertical: 2,
+  },
+  boldPosto: {
+    fontWeight: "bold",
+  },
+  txtPosto: {
+    fontWeight: "600",
+    color: "#2c3e50",
+    textTransform: "capitalize"
   },
   statusText: {
     fontWeight: "bold",

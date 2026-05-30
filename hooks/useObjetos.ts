@@ -6,6 +6,7 @@ import {
     buscarImagens
 } from "../services/ObjetoService";
 import { listarCategorias } from "../services/CategoriaService";
+import { buscarPostoPorId } from "../services/PostoService"; // 🔥 Importado o service de postos
 import { CategoriaOption } from "../types/Categoria";
 
 export function useObjetos() {
@@ -27,13 +28,27 @@ export function useObjetos() {
         { value: "DESCARTADO", label: "Descartado" },
     ];
 
+    // 🔥 Modificado para montar as imagens E injetar o nome do posto associado
     const montarObjetoComImagens = async (obj: any) => {
         const caminhos: string[] = obj.caminhosImagens ?? [];
         const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
 
+        let nomePostoVinculado = "";
+
+        if (obj.postoId) {
+            try {
+                const posto = await buscarPostoPorId(obj.postoId);
+                nomePostoVinculado = posto.nome;
+            } catch (postoErr) {
+                console.log(`Erro ao buscar posto para o objeto ${obj.id}:`, postoErr);
+                nomePostoVinculado = "Posto não encontrado";
+            }
+        }
+
         return {
             ...obj,
             caminhosImagens: imagens,
+            nomePosto: nomePostoVinculado, // <-- Injeta o nome do posto estruturado
         };
     };
 

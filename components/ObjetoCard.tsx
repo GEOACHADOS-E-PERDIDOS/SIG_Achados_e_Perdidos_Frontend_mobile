@@ -17,9 +17,10 @@ type Objeto = {
   descricao: string;
   enderecoEncontro: string;
   dataEncontro: string;
+  nomePosto?: string; 
   imagemCompleta?: ImagemMobile | null; 
   categorias?: Categoria[];
-  status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO";
+  status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO" | "PERDIDO"; 
 };
 
 type Props = {
@@ -34,7 +35,7 @@ export default function ObjetoCard({ obj, onDelete, onClick }: Props) {
     switch (status) {
       case "DISPONIVEL": return "#2ecc71";
       case "DEVOLVIDO": return "#3498db";
-      default: return "#e74c3c";
+      case "PERDIDO": return "#e74c3c";
     }
   };
 
@@ -62,8 +63,11 @@ export default function ObjetoCard({ obj, onDelete, onClick }: Props) {
         <Text style={styles.title} numberOfLines={1}>{obj.nome}</Text>
         <Text style={styles.description} numberOfLines={2}>{obj.descricao}</Text>
 
-        <Text style={styles.infoText}>
-          <Text style={styles.bold}>Endereço:</Text> {obj.enderecoEncontro}
+        <Text style={styles.infoText} numberOfLines={1}>
+          <Text style={styles.bold}>
+            {obj.status === "PERDIDO" ? "Região Perdido:" : "Local Encontro:"}
+          </Text>{" "}
+          {obj.enderecoEncontro}
         </Text>
 
         <Text style={styles.infoText}>
@@ -97,7 +101,6 @@ export default function ObjetoCard({ obj, onDelete, onClick }: Props) {
   );
 }
 
-/* Os estilos permanecem idênticos aos que você já tem */
 const styles = StyleSheet.create({
   cardObjeto: {
     flexDirection: "row", 
@@ -134,8 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#a0a0a0",
     textAlign: "center",
-        textTransform: "capitalize"
-
+    textTransform: "capitalize"
   },
   cardText: {
     flex: 1, 
@@ -149,7 +151,6 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
     marginBottom: 2,
     textTransform: "capitalize"
-
   },
   description: {
     fontSize: 13,
@@ -163,7 +164,6 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "600",
     color: "#555",
-    
   },
   statusText: {
     fontWeight: "bold",
