@@ -1,150 +1,66 @@
-import { useEffect, useState } from "react";
-
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
-
-import MapView, {
-  Marker,
-} from "react-native-maps";
-
-import HomeService, {
-  Posto
-} from "../../services/HomeService";
+import React from "react";
+// 1. Adicionado o StyleSheet na importação do react-native
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import Mapa from "../../components/Mapa";
+import { useHomeDados } from "../../hooks/useHomeDados";
 
 export default function HomePage() {
+  const { isAdmin, refreshKey, loading, postos } = useHomeDados();
 
-  const [postos, setPostos] = useState<Posto[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-
-    carregarDados();
-
-  }, []);
-
-  const carregarDados = async () => {
-
-    try {
-
-      const admin =
-        await HomeService.checarAdmin();
-
-      const postosData =
-        await HomeService.buscarPostos();
-
-      setIsAdmin(admin);
-      setPostos(postosData);
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1e2a38" />
+      </View>
+    );
+  }
 
   return (
-
     <View style={styles.container}>
-
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: -15.7939,
-          longitude: -47.8828,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
-
-        {postos.map((posto: any) => (
-
-          <Marker
-            key={posto.id}
-            coordinate={{
-              latitude: posto.latitude,
-              longitude: posto.longitude,
-            }}
-            title={posto.nome}
-            description={posto.endereco}
-          />
-
-        ))}
-
-      </MapView>
-
-      <View style={styles.buttonsContainer}>
-
-        {isAdmin && (
-
-          <TouchableOpacity
-            style={styles.button}
-          >
-
-            <Text style={styles.buttonText}>
-              Cadastrar Posto
-            </Text>
-
-          </TouchableOpacity>
-
-        )}
-
-        <TouchableOpacity
-          style={styles.button}
-        >
-
-          <Text style={styles.buttonText}>
-            Objeto Perdido
-          </Text>
-
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-        >
-
-          <Text style={styles.buttonText}>
-            Objeto Achado
-          </Text>
-
-        </TouchableOpacity>
-
+      <View style={styles.mapContainer}>
+        <Mapa refreshKey={refreshKey} postos={postos} />
       </View>
 
+      {isAdmin && (
+        <TouchableOpacity style={styles.floatingAdminButton}>
+          <Text style={styles.buttonText}>+ Posto</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
   },
-
-  map: {
+  loadingContainer: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-
-  buttonsContainer: {
+  mapContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  floatingAdminButton: {
     position: "absolute",
-    bottom: 20,
-    width: "100%",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  button: {
+    top: 50, 
+    right: 20,
     backgroundColor: "#1e2a38",
-    padding: 14,
-    borderRadius: 10,
-    width: "80%",
-    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25, 
+    zIndex: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontWeight: "bold",
+    fontSize: 15,
   },
 });
