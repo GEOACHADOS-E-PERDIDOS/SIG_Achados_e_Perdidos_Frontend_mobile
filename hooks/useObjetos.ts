@@ -4,7 +4,7 @@ import {
     buscarObjetos,
     deletarObjeto,
     buscarImagens
-} from "../services/ObjetoPageService";
+} from "../services/ObjetoService";
 import { listarCategorias } from "../services/CategoriaService";
 import { CategoriaOption } from "../types/Categoria";
 
@@ -28,15 +28,8 @@ export function useObjetos() {
     ];
 
     const montarObjetoComImagens = async (obj: any) => {
-        console.log(`📦 [HOOK] Objeto Bruto do Banco (ID: ${obj.id}):`, {
-            nome: obj.nome,
-            caminhosImagens: obj.caminhosImagens
-        });
-
         const caminhos: string[] = obj.caminhosImagens ?? [];
         const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
-
-        console.log(`🖼️ [HOOK] Resultado após buscarImagens para ID ${obj.id}:`, imagens);
 
         return {
             ...obj,

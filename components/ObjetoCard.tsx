@@ -8,7 +8,7 @@ type Categoria = {
 };
 
 type ImagemMobile = {
-  uri: string; // Agora armazena o formato data:image/jpeg;base64,...
+  uri: string;
 };
 
 type Objeto = {
@@ -29,13 +29,6 @@ type Props = {
 };
 
 export default function ObjetoCard({ obj, onDelete, onClick }: Props) {
-  
-  // Log simples e limpo no corpo da função para sabermos se o Base64 chegou
-  if (obj.imagemCompleta?.uri) {
-    console.log(`📸 [CARD - ${obj.nome}] String Base64 recebida! Tamanho dos caracteres:`, obj.imagemCompleta.uri.length);
-  } else {
-    console.log(`⚠️ [CARD - ${obj.nome}] Renderizando sem imagem.`);
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -52,11 +45,10 @@ export default function ObjetoCard({ obj, onDelete, onClick }: Props) {
       <View style={styles.cardImageContainer}>
         {obj.imagemCompleta?.uri ? (
           <Image 
-            // O motor nativo consome o Base64 da memória de forma instantânea
             source={{ uri: obj.imagemCompleta.uri }} 
             style={styles.cardImage} 
-            onLoad={() => console.log(`✅ [CARD - ${obj.nome}] Renderizado com sucesso via Base64!`)}
-            onError={(e) => console.log(`❌ [CARD - ${obj.nome}] Erro ao ler a string Base64:`, e.nativeEvent.error)}
+            onLoad={() => console.log(`[CARD - ${obj.nome}] Renderizado com sucesso via Base64!`)}
+            onError={(e) => console.log(`[CARD - ${obj.nome}] Erro ao ler a string Base64:`, e.nativeEvent.error)}
           />
         ) : (
           <View style={styles.imagemPlaceholder}>
@@ -142,6 +134,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#a0a0a0",
     textAlign: "center",
+        textTransform: "capitalize"
+
   },
   cardText: {
     flex: 1, 
@@ -154,6 +148,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#2c3e50",
     marginBottom: 2,
+    textTransform: "capitalize"
+
   },
   description: {
     fontSize: 13,
@@ -167,6 +163,7 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: "600",
     color: "#555",
+    
   },
   statusText: {
     fontWeight: "bold",

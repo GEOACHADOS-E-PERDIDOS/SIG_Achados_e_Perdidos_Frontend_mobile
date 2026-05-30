@@ -1,5 +1,4 @@
 import React from "react";
-// 1. Adicionado o StyleSheet na importação do react-native
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import Mapa from "../../components/Mapa";
 import { useHomeDados } from "../../hooks/useHomeDados";

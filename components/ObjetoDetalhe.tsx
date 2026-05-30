@@ -1,13 +1,22 @@
-import React from "react";
-import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from "react-native";
-import { formatarData } from "../utils/formatarData"; 
+import React, { useState } from "react";
+import { 
+  View, 
+  Text, 
+  Image, 
+  ScrollView, 
+  StyleSheet, 
+  Dimensions, 
+  NativeSyntheticEvent, 
+  NativeScrollEvent 
+} from "react-native";
+import { formatarData } from "../utils/formatarData";
 
 type Categoria = {
   nome: string;
 };
 
 type ImagemMobile = {
-  uri: string; 
+  uri: string;
 };
 
 type Objeto = {
@@ -17,7 +26,7 @@ type Objeto = {
   enderecoEncontro: string;
   dataEncontro: string;
   nomePosto?: string;
-  caminhosImagens?: ImagemMobile[]; 
+  caminhosImagens?: ImagemMobile[];
   categorias?: Categoria[];
   status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO";
 };
@@ -26,14 +35,24 @@ type Props = {
   obj: Objeto;
 };
 
+const { width } = Dimensions.get("window");
+const SLIDE_WIDTH = (width * 0.78) + 10;
+
 export default function ObjetoDetalhe({ obj }: Props) {
-  
+  const [activeIndex, setActiveIndex] = useState(0);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "DISPONIVEL": return "#2ecc71";
       case "DEVOLVIDO": return "#3498db";
       default: return "#e74c3c";
     }
+  };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / SLIDE_WIDTH);
+    setActiveIndex(index);
   };
 
   return (
@@ -44,27 +63,61 @@ export default function ObjetoDetalhe({ obj }: Props) {
       {/* CARROSSEL DE IMAGENS NATIVO */}
       <View style={styles.imageSectionContainer}>
         {obj.caminhosImagens && obj.caminhosImagens.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            pagingEnabled={obj.caminhosImagens.length > 1} 
-            contentContainerStyle={styles.imageScroll}
-          >
-            {obj.caminhosImagens.map((img, index) => (
+
+          obj.caminhosImagens.length === 1 ? (
+            
+            /* Ajustado: View em volta da imagem única para garantir a centralização */
+            <View style={styles.imagemUnicaContainer}>
               <Image
-                key={index}
-                source={{ uri: img.uri }}
-                style={[
-                  styles.objetoImagem,
-                  obj.caminhosImagens!.length === 1 && { width: Dimensions.get("window").width * 0.82 }
-                ]}
+                source={{ uri: obj.caminhosImagens[0].uri }}
+                style={styles.imagemUnica}
               />
-            ))}
-          </ScrollView>
+            </View>
+
+          ) : (
+            <>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                pagingEnabled
+                contentContainerStyle={styles.imageScroll}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+              >
+                {obj.caminhosImagens.map((img, index) => (
+                  /* Ajustado: Envolvemos cada imagem do carrossel em uma View centralizada */
+                  <View key={index} style={styles.objetoImagemContainer}>
+                    <Image
+                      source={{ uri: img.uri }}
+                      style={styles.objetoImagem}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* Renderização dos pontinhos indicadores */}
+              <View style={styles.paginationContainer}>
+                {obj.caminhosImagens.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.paginationDot,
+                      activeIndex === index ? styles.dotActive : styles.dotInactive
+                    ]}
+                  />
+                ))}
+              </View>
+            </>
+          )
+
         ) : (
+
           <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>Sem imagem</Text>
+            <Text style={styles.placeholderText}>
+              Sem imagem
+            </Text>
           </View>
+
         )}
       </View>
 
@@ -106,8 +159,6 @@ export default function ObjetoDetalhe({ obj }: Props) {
   );
 }
 
-const { width } = Dimensions.get("window");
-
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 10,
@@ -118,6 +169,7 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
     marginBottom: 16,
     textAlign: "center",
+    textTransform: "capitalize"
   },
   imageSectionContainer: {
     height: 200,
@@ -125,15 +177,34 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 20,
+    position: "relative", 
   },
   imageScroll: {
     alignItems: "center",
   },
-  objetoImagem: {
-    width: width * 0.78, 
+  /* NOVO: Container para centralizar perfeitamente a imagem única alta */
+  imagemUnicaContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imagemUnica: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
+  },
+  /* NOVO: Container para centralizar cada imagem alta dentro do ScrollView */
+  objetoImagemContainer: {
+    width: width * 0.78,
     height: 200,
-    resizeMode: "contain", 
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 10,
+  },
+  objetoImagem: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
     borderRadius: 8,
   },
   placeholderContainer: {
@@ -147,8 +218,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
+  paginationContainer: {
+    position: "absolute",
+    bottom: 12,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+  },
+  paginationDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  dotActive: {
+    backgroundColor: "#1e2a38", 
+    width: 12, 
+  },
+  dotInactive: {
+    backgroundColor: "rgba(30, 42, 56, 0.35)", 
+  },
   infoSection: {
-    gap: 12, 
+    gap: 12,
   },
   infoParagraph: {
     fontSize: 15,

@@ -1,7 +1,8 @@
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Modal, ActivityIndicator } from "react-native";
 import MapView, { Marker, Circle, UrlTile, PROVIDER_GOOGLE } from "react-native-maps";
 import { useMapa } from "../hooks/useMapa";
 import { Posto } from "../services/HomeService";
+import ObjetoDetalhe from "./ObjetoDetalhe";
 
 type Props = {
   refreshKey: number;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export default function Mapa({ refreshKey, postos }: Props) {
+  // Desestruturando as novas propriedades vindas do useMapa
   const {
     busca,
     setBusca,
@@ -21,6 +23,10 @@ export default function Mapa({ refreshKey, postos }: Props) {
     setMostrarPostos,
     buscarObjetos,
     limparBusca,
+    objetoSelecionado,
+    setObjetoSelecionado,
+    carregandoDetalhes,
+    abrirDetalhe,
   } = useMapa({ refreshKey });
 
   return (
@@ -38,21 +44,21 @@ export default function Mapa({ refreshKey, postos }: Props) {
       >
         {/* GEOSERVER WMS / TMS TILES */}
         {mostrarPostos && (
-          <UrlTile 
-            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_posto_retirada_map@EPSG:900913@png/{z}/{x}/{y}.png" 
-            tileSize={256} 
+          <UrlTile
+            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_posto_retirada_map@EPSG:900913@png/{z}/{x}/{y}.png"
+            tileSize={256}
           />
         )}
         {mostrarPerdidos && (
-          <UrlTile 
-            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_objeto_perdido_map@EPSG:900913@png/{z}/{x}/{y}.png" 
-            tileSize={256} 
+          <UrlTile
+            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_objeto_perdido_map@EPSG:900913@png/{z}/{x}/{y}.png"
+            tileSize={256}
           />
         )}
         {mostrarAchados && (
-          <UrlTile 
-            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_objeto_achado_map@EPSG:900913@png/{z}/{x}/{y}.png" 
-            tileSize={256} 
+          <UrlTile
+            urlTemplate="http://localhost:8080/geoserver/gwc/service/tms/1.0.0/Geoachados:view_objeto_achado_map@EPSG:900913@png/{z}/{x}/{y}.png"
+            tileSize={256}
           />
         )}
 
@@ -67,10 +73,12 @@ export default function Mapa({ refreshKey, postos }: Props) {
               fillColor="rgba(255,204,0,0.2)"
             />
             <Marker
-              coordinate={{ latitude: obj.latitudeEncontro, longitude: obj.longitudeEncontro }}
-              title={obj.nome}
-              description={obj.descricao}
+              coordinate={{
+                latitude: obj.latitudeEncontro,
+                longitude: obj.longitudeEncontro
+              }}
               pinColor={obj.status === "PERDIDO" ? "red" : "cyan"}
+              onPress={() => abrirDetalhe(obj.id)}
             />
           </View>
         ))}
@@ -87,6 +95,50 @@ export default function Mapa({ refreshKey, postos }: Props) {
         ))}
       </MapView>
 
+      {/* MODAL DE DETALHES */}
+      <Modal
+        visible={!!objetoSelecionado || carregandoDetalhes}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setObjetoSelecionado(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+
+            {/* Feedback visual enquanto a requisição do hook acontece */}
+            {carregandoDetalhes ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#1e2a38" />
+                <Text style={styles.loadingText}>Carregando informações...</Text>
+              </View>
+            ) : (
+              objetoSelecionado && (
+                <ObjetoDetalhe
+                  obj={{
+                    id: objetoSelecionado.id,
+                    nome: objetoSelecionado.nome,
+                    descricao: objetoSelecionado.descricao,
+                    enderecoEncontro: objetoSelecionado.enderecoEncontro || "Consultar localização",
+                    dataEncontro: objetoSelecionado.dataEncontro || new Date().toISOString(),
+                    status: objetoSelecionado.status === "PERDIDO" ? "DESCARTADO" : "DISPONIVEL",
+                    categorias: objetoSelecionado.categorias || [],
+                    caminhosImagens: objetoSelecionado.caminhosImagens,
+                  }}
+                />
+              )
+            )}
+
+            <TouchableOpacity
+              style={styles.btnFechar}
+              onPress={() => setObjetoSelecionado(null)}
+            >
+              <Text style={styles.btnText}>Fechar</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      </Modal>
+
       {/* INPUT DE BUSCA */}
       <View style={styles.searchContainer}>
         <TextInput
@@ -96,11 +148,10 @@ export default function Mapa({ refreshKey, postos }: Props) {
           style={styles.input}
         />
         <View style={styles.searchButtonsRow}>
-          {/* 🔥 Alterado para uma arrow function para não repassar o evento do clique */}
           <TouchableOpacity onPress={() => buscarObjetos()} style={[styles.btn, { flex: 2 }]}>
             <Text style={styles.btnText}>Buscar</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity onPress={limparBusca} style={[styles.btn, styles.btnClear, { flex: 1 }]}>
             <Text style={styles.btnText}>Limpar</Text>
           </TouchableOpacity>
@@ -134,15 +185,12 @@ export default function Mapa({ refreshKey, postos }: Props) {
   );
 }
 
-/* ===================================================== */
-/* ESTILOS (CSS STYLE) */
-/* ===================================================== */
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1 
+  container: {
+    flex: 1
   },
-  map: { 
-    flex: 1 
+  map: {
+    flex: 1
   },
   searchContainer: {
     position: "absolute",
@@ -209,13 +257,38 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#555",
   },
-  activePosto: { 
-    backgroundColor: "#d1c4e9" 
+  activePosto: { backgroundColor: "#d1c4e9" },
+  activePerdido: { backgroundColor: "#ffcdd2" },
+  activeAchado: { backgroundColor: "#bbdefb" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  activePerdido: { 
-    backgroundColor: "#ffcdd2" 
+  modalContent: {
+    width: "92%",
+    maxHeight: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
   },
-  activeAchado: { 
-    backgroundColor: "#bbdefb" 
+  btnFechar: {
+    backgroundColor: "#1e2a38",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
   },
+  loadingContainer: {
+    padding: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 15,
+    color: "#7f8c8d",
+    fontWeight: "500",
+  }
 });

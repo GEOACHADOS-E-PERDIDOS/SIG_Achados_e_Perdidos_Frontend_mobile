@@ -114,7 +114,6 @@ export default function ObjetosScreen() {
             <ObjetoCard
               obj={{
                 ...item,
-                // Repassamos o objeto de imagem inteiro gerado pelo service
                 imagemCompleta: item.caminhosImagens?.[0] ?? null,
               }}
               onDelete={handleDelete}
