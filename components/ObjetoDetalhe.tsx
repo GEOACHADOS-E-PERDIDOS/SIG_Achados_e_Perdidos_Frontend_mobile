@@ -29,6 +29,7 @@ type Objeto = {
   caminhosImagens?: ImagemMobile[];
   categorias?: Categoria[];
   status: "DISPONIVEL" | "DEVOLVIDO" | "DESCARTADO" | "PERDIDO"; 
+  
 };
 
 type Props = {

@@ -1,8 +1,11 @@
+import React, { useState } from "react";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Modal, ActivityIndicator } from "react-native";
 import MapView, { Marker, Circle, UrlTile, PROVIDER_GOOGLE } from "react-native-maps";
 import { useMapa } from "../hooks/useMapa";
 import { Posto } from "../services/HomeService";
 import ObjetoDetalhe from "./ObjetoDetalhe";
+import { Keyboard } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
   refreshKey: number;
@@ -25,8 +28,20 @@ export default function Mapa({ refreshKey, postos }: Props) {
     objetoSelecionado,
     setObjetoSelecionado,
     carregandoDetalhes,
-    abrirDetalhe,           
+    abrirDetalhe,
   } = useMapa({ refreshKey });
+
+  const [tipoMapa, setTipoMapa] = useState<"hybrid" | "standard">("hybrid");
+  const [pesquisaExpandida, setPesquisaExpandida] = useState(false);
+
+  const alternarTipoMapa = () => {
+    setTipoMapa((atual) => (atual === "hybrid" ? "standard" : "hybrid"));
+  };
+
+  const handleLimparBusca = () => {
+    limparBusca();
+    setPesquisaExpandida(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -34,6 +49,8 @@ export default function Mapa({ refreshKey, postos }: Props) {
         key={refreshKey}
         provider={PROVIDER_GOOGLE}
         style={styles.map}
+        toolbarEnabled={false}
+        mapType={tipoMapa}
         initialRegion={{
           latitude: -15.7939,
           longitude: -47.8828,
@@ -94,6 +111,65 @@ export default function Mapa({ refreshKey, postos }: Props) {
         ))}
       </MapView>
 
+      {/* CONTAINER DE BUSCA EXPANSÍVEL */}
+      <View style={[styles.searchContainer, !pesquisaExpandida && styles.searchContainerFechado]}>
+        {!pesquisaExpandida ? (
+          <TouchableOpacity
+            style={styles.btnLupaArredondada}
+            onPress={() => setPesquisaExpandida(true)}
+          >
+            <Ionicons name="search" size={22} color="#1e2a38" />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.containerExpandido}>
+            <View style={styles.inputRow}>
+              <TextInput
+                value={busca}
+                onChangeText={setBusca}
+                placeholder="Buscar objeto..."
+                style={styles.input}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={styles.btnFecharPesquisa}
+                onPress={() => setPesquisaExpandida(false)}
+              >
+                <Ionicons name="close" size={24} color="#7f8c8d" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.searchButtonsRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  buscarObjetos();
+                  Keyboard.dismiss(); 
+                  setPesquisaExpandida(false); 
+                }}
+                style={[styles.btn, { flex: 2 }]}
+              >
+                <Text style={styles.btnText}>Buscar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleLimparBusca} style={[styles.btn, styles.btnClear, { flex: 1 }]}>
+                <Text style={styles.btnText}>Limpar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* 🔥 BOTÃO FLUTUANTE DE ALTERNAR MAPA COM IONICONS */}
+      <TouchableOpacity style={styles.btnToggleMap} onPress={alternarTipoMapa}>
+        <Ionicons
+          name={tipoMapa === "hybrid" ? "map-outline" : "earth-outline"}
+          size={20}
+          color="#1e2a38"
+          style={{ marginRight: 6 }}
+        />
+        <Text style={styles.btnToggleMapText}>
+          {tipoMapa === "hybrid" ? "Mapa Padrão" : "Mapa Satélite"}
+        </Text>
+      </TouchableOpacity>
+
       {/* MODAL DE DETALHES */}
       <Modal
         visible={!!objetoSelecionado || carregandoDetalhes}
@@ -103,7 +179,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-
             {carregandoDetalhes ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#1e2a38" />
@@ -126,36 +201,12 @@ export default function Mapa({ refreshKey, postos }: Props) {
                 />
               )
             )}
-
-            <TouchableOpacity
-              style={styles.btnFechar}
-              onPress={() => setObjetoSelecionado(null)}
-            >
+            <TouchableOpacity style={styles.btnFechar} onPress={() => setObjetoSelecionado(null)}>
               <Text style={styles.btnText}>Fechar Detalhes</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
-
-      {/* INPUT DE BUSCA */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          value={busca}
-          onChangeText={setBusca}
-          placeholder="Buscar objeto..."
-          style={styles.input}
-        />
-        <View style={styles.searchButtonsRow}>
-          <TouchableOpacity onPress={() => buscarObjetos()} style={[styles.btn, { flex: 2 }]}>
-            <Text style={styles.btnText}>Buscar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={limparBusca} style={[styles.btn, styles.btnClear, { flex: 1 }]}>
-            <Text style={styles.btnText}>Limpar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
       {/* CONTROLE DE CAMADAS (LAYERSCONTROL) */}
       <View style={styles.layerControl}>
@@ -165,14 +216,12 @@ export default function Mapa({ refreshKey, postos }: Props) {
         >
           <Text style={styles.filterText}>📍 Postos</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => setMostrarPerdidos((v) => !v)}
           style={[styles.filterBtn, mostrarPerdidos && styles.activePerdido]}
         >
           <Text style={styles.filterText}>❌ Perdidos</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => setMostrarAchados((v) => !v)}
           style={[styles.filterBtn, mostrarAchados && styles.activeAchado]}
@@ -191,13 +240,34 @@ const styles = StyleSheet.create({
   map: {
     flex: 1
   },
+  btnToggleMap: {
+    position: "absolute",
+    bottom: 100,
+    right: 20,
+    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnToggleMapText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#1e2a38",
+  },
   searchContainer: {
     position: "absolute",
     top: 50,
     width: "90%",
     alignSelf: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    padding: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -205,13 +275,43 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  input: {
-    backgroundColor: "#f0f2f5",
+  searchContainerFechado: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignSelf: "flex-end",
+    marginRight: "5%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+  btnLupaArredondada: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  containerExpandido: {
     padding: 12,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 4,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#f0f2f5",
+    padding: 10,
     borderRadius: 8,
     fontSize: 16,
     color: "#333",
-    marginBottom: 8,
+  },
+  btnFecharPesquisa: {
+    padding: 6,
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchButtonsRow: {
     flexDirection: "row",
