@@ -81,3 +81,4 @@ export const buscarPostoPorId = async (
 
   return res.data;
 };
+

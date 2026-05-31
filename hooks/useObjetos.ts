@@ -6,7 +6,7 @@ import {
     buscarImagens
 } from "../services/ObjetoService";
 import { listarCategorias } from "../services/CategoriaService";
-import { buscarPostoPorId } from "../services/PostoService"; // 🔥 Importado o service de postos
+import { buscarPostoPorId } from "../services/PostoService"; 
 import { CategoriaOption } from "../types/Categoria";
 
 export function useObjetos() {
