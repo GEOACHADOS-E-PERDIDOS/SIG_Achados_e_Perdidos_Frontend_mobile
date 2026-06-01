@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity, Text, StyleSheet, Modal, ActivityIndicator } from "react-native";
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Modal, ActivityIndicator, ScrollView } from "react-native";
 import MapView, { Marker, Circle, UrlTile, PROVIDER_GOOGLE } from "react-native-maps";
 import { useMapa } from "../hooks/useMapa";
 import { Posto } from "../services/HomeService";
 import ObjetoDetalhe from "./ObjetoDetalhe";
+import PostoDetalhe from "./PostoDetalhe"; // 1. IMPORTADO O COMPONENTE
 import { Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -33,6 +34,9 @@ export default function Mapa({ refreshKey, postos }: Props) {
 
   const [tipoMapa, setTipoMapa] = useState<"hybrid" | "standard">("hybrid");
   const [pesquisaExpandida, setPesquisaExpandida] = useState(false);
+
+  // 2. ESTADOS ADICIONADOS PARA GERENCIAR O POSTO SELECIONADO
+  const [postoSelecionado, setPostoSelecionado] = useState<any | null>(null);
 
   const alternarTipoMapa = () => {
     setTipoMapa((atual) => (atual === "hybrid" ? "standard" : "hybrid"));
@@ -105,8 +109,10 @@ export default function Mapa({ refreshKey, postos }: Props) {
             key={`posto-${posto.id}`}
             coordinate={{ latitude: posto.latitude, longitude: posto.longitude }}
             title={posto.nome}
-            description="📍 Posto de Retirada Oficial"
+            description="📍 Clique para ver detalhes e objetos"
             pinColor="green"
+            // 3. CONECTANDO O CLIQUE DO POSTO PARA ABRIR O DETALHE
+            onPress={() => setPostoSelecionado(posto)}
           />
         ))}
       </MapView>
@@ -142,8 +148,8 @@ export default function Mapa({ refreshKey, postos }: Props) {
               <TouchableOpacity
                 onPress={() => {
                   buscarObjetos();
-                  Keyboard.dismiss(); 
-                  setPesquisaExpandida(false); 
+                  Keyboard.dismiss();
+                  setPesquisaExpandida(false);
                 }}
                 style={[styles.btn, { flex: 2 }]}
               >
@@ -157,7 +163,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
         )}
       </View>
 
-      {/* 🔥 BOTÃO FLUTUANTE DE ALTERNAR MAPA COM IONICONS */}
       <TouchableOpacity style={styles.btnToggleMap} onPress={alternarTipoMapa}>
         <Ionicons
           name={tipoMapa === "hybrid" ? "map-outline" : "earth-outline"}
@@ -170,7 +175,7 @@ export default function Mapa({ refreshKey, postos }: Props) {
         </Text>
       </TouchableOpacity>
 
-      {/* MODAL DE DETALHES */}
+      {/* MODAL DO OBJETO SELECIONADO (Vindo do clique no Mapa) */}
       <Modal
         visible={!!objetoSelecionado || carregandoDetalhes}
         animationType="slide"
@@ -186,24 +191,56 @@ export default function Mapa({ refreshKey, postos }: Props) {
               </View>
             ) : (
               objetoSelecionado && (
-                <ObjetoDetalhe
-                  obj={{
-                    id: objetoSelecionado.id,
-                    nome: objetoSelecionado.nome,
-                    descricao: objetoSelecionado.descricao,
-                    enderecoEncontro: objetoSelecionado.enderecoEncontro || "Consultar localização",
-                    dataEncontro: objetoSelecionado.dataEncontro || new Date().toISOString(),
-                    status: objetoSelecionado.status,
-                    categorias: objetoSelecionado.categorias || [],
-                    caminhosImagens: objetoSelecionado.caminhosImagens,
-                    nomePosto: objetoSelecionado.nomePosto,
-                  }}
-                />
+                // ScrollView adicionado aqui para garantir que se o objeto for grande, não quebre a tela
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  <ObjetoDetalhe
+                    obj={{
+                      id: objetoSelecionado.id,
+                      nome: objetoSelecionado.nome,
+                      descricao: objetoSelecionado.descricao,
+                      enderecoEncontro: objetoSelecionado.enderecoEncontro || "Consultar localização",
+                      dataEncontro: objetoSelecionado.dataEncontro || new Date().toISOString(),
+                      status: objetoSelecionado.status,
+                      categorias: objetoSelecionado.categorias || [],
+                      caminhosImagens: objetoSelecionado.caminhosImagens, // Já processado em Base64 pelo hook
+                      nomePosto: objetoSelecionado.nomePosto,
+                    }}
+                  />
+                  {/* O botão fica dentro do escopo do conteúdo para evitar sumir em telas menores */}
+                  <TouchableOpacity style={styles.btnFechar} onPress={() => setObjetoSelecionado(null)}>
+                    <Text style={styles.btnText}>Fechar Detalhes</Text>
+                  </TouchableOpacity>
+                </ScrollView>
               )
             )}
-            <TouchableOpacity style={styles.btnFechar} onPress={() => setObjetoSelecionado(null)}>
-              <Text style={styles.btnText}>Fechar Detalhes</Text>
-            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 4. MODAL NOVO ADICIONADO PARA OS DETALHES DO POSTO */}
+      <Modal
+        visible={postoSelecionado !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPostoSelecionado(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.postoModalContent]}>
+            {postoSelecionado && (
+              <PostoDetalhe
+                posto={{
+                  id: postoSelecionado.id,
+                  nome: postoSelecionado.nome,
+                  endereco: postoSelecionado.endereco || "Não informado",
+                  telefone: postoSelecionado.telefone || "Não informado",
+                  email: postoSelecionado.email || "Não informado",
+                  imagens: postoSelecionado.imagens || [],
+                  latitude: postoSelecionado.latitude,
+                  longitude: postoSelecionado.longitude
+                }}
+                onClose={() => setPostoSelecionado(null)}
+              />
+            )}
           </View>
         </View>
       </Modal>
@@ -214,19 +251,30 @@ export default function Mapa({ refreshKey, postos }: Props) {
           onPress={() => setMostrarPostos((v) => !v)}
           style={[styles.filterBtn, mostrarPostos && styles.activePosto]}
         >
-          <Text style={styles.filterText}>📍 Postos</Text>
+          <View style={styles.filterContent}>
+            <Ionicons name="business-outline" size={16} color="#555" />
+            <Text style={styles.filterText}>Postos</Text>
+          </View>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => setMostrarPerdidos((v) => !v)}
           style={[styles.filterBtn, mostrarPerdidos && styles.activePerdido]}
         >
-          <Text style={styles.filterText}>❌ Perdidos</Text>
+          <View style={styles.filterContent}>
+            <Ionicons name="close-circle-outline" size={16} color="#555" />
+            <Text style={styles.filterText}>Perdidos</Text>
+          </View>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => setMostrarAchados((v) => !v)}
           style={[styles.filterBtn, mostrarAchados && styles.activeAchado]}
         >
-          <Text style={styles.filterText}>✔️ Achados</Text>
+          <View style={styles.filterContent}>
+            <Ionicons name="checkmark-circle-outline" size={16} color="#555" />
+            <Text style={styles.filterText}>Achados</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -372,12 +420,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
   },
+  postoModalContent: {
+    height: "75%",
+    padding: 0,
+    overflow: "hidden"
+  },
   btnFechar: {
     backgroundColor: "#1e2a38",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
+    marginHorizontal: 16, // Mantém margem bonita para o botão fechar do objeto
   },
   loadingContainer: {
     padding: 30,
@@ -389,5 +443,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#7f8c8d",
     fontWeight: "500",
-  }
+  },
+  filterContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
 });
