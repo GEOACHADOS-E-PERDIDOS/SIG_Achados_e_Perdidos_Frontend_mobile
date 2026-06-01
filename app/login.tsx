@@ -88,7 +88,10 @@ export default function Login() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <TouchableOpacity style={styles.button} onPress={() => {
+    console.log("🟢 [LOGIN] Botão Entrar clicado");
+    handleLogin();
+  }}>
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 

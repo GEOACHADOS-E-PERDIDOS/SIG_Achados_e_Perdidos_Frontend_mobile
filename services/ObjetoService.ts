@@ -82,3 +82,36 @@ export const buscarObjetoPorId = async (id: number) => {
   console.log(res.data)
   return res.data;
 };
+
+export const criarObjetoAchado = async (formData: FormData) => {
+  const config = await getAuthHeader();
+
+  const url = `${API_URL}/objetos/achados`;
+
+  console.log("🔥 [SERVICE] URL FINAL:", url);
+  console.log("🔥 [SERVICE] API_URL:", API_URL);
+
+  return axios.post(url, formData, {
+    ...config,
+    headers: {
+      ...config.headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const criarObjetoPerdido = async (formData: FormData) => {
+  const config = await getAuthHeader();
+
+  return axios.post(
+    `${API_URL}/objetos/perdidos`,
+    formData,
+    {
+      ...config,
+      headers: {
+        ...config.headers,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+};

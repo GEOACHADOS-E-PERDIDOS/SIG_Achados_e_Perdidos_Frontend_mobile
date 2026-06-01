@@ -1,10 +1,13 @@
 import React from "react";
+import { useNavigation } from "@react-navigation/native";
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import Mapa from "../../components/Mapa";
 import { useHomeDados } from "../../hooks/useHomeDados";
+import { router } from "expo-router";
 
 export default function HomePage() {
-  const { isAdmin, refreshKey, loading, postos } = useHomeDados();
+  const {  refreshKey, loading, postos } = useHomeDados();
+  const navigation = useNavigation<any>();
 
   if (loading) {
     return (
@@ -20,12 +23,29 @@ export default function HomePage() {
         <Mapa refreshKey={refreshKey} postos={postos} />
       </View>
 
-      {isAdmin && (
-        <TouchableOpacity style={styles.floatingAdminButton}>
-          <Text style={styles.buttonText}>+ Posto</Text>
+      <View style={styles.floatingContainer}>
+
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => router.push("/cadastroobjetoachado")}
+        >
+          <Text style={styles.buttonText}>
+            + Achado
+          </Text>
         </TouchableOpacity>
-      )}
+
+        <TouchableOpacity
+          style={styles.floatingButtonLost}
+          onPress={() => router.push("/cadastroobjetoperdido")}
+        >
+          <Text style={styles.buttonText}>+ Perdido</Text>
+        </TouchableOpacity>
+
+      </View>
+
     </View>
+    
+
   );
 }
 
@@ -42,24 +62,46 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 0,
   },
-  floatingAdminButton: {
-    position: "absolute",
-    top: 50, 
-    right: 20,
-    backgroundColor: "#1e2a38",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25, 
-    zIndex: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
   buttonText: {
     color: "#ffffff",
     fontWeight: "bold",
     fontSize: 15,
   },
+
+  floatingContainer: {
+  position: "absolute",
+  top: 200,
+  right: 20,
+  gap: 10,
+  zIndex: 10,
+},
+
+floatingButton: {
+  backgroundColor: "#1e2a38",
+  paddingVertical: 10,
+  paddingHorizontal: 16,
+  borderRadius: 20,
+  alignItems: "center",
+  justifyContent: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+
+floatingButtonLost: {
+  backgroundColor: "#e74c3c",
+  paddingVertical: 10,
+  paddingHorizontal: 16,
+  borderRadius: 20,
+  alignItems: "center",
+  justifyContent: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
+
 });
