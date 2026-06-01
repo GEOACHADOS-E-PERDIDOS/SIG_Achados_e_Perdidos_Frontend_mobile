@@ -36,32 +36,23 @@ export function useCadastroObjeto(tipo: "ACHADO" | "PERDIDO") {
   const [dataEncontro, setDataEncontro] = useState<Date | null>(null);
   const [imagens, setImagens] = useState<any[]>([]);
 
-  // =========================
-  // CARREGAR CATEGORIAS
-  // =========================
-const carregarCategorias = async () => {
-  try {
-    const data = await listarCategorias();
-    
-    console.log("--- [DEBUG] O QUE VEM DO JAVA:", data[0]); 
+  const carregarCategorias = async () => {
+    try {
+      const data = await listarCategorias();
 
-    const formatadas = data.map((c: any) => ({
-      // Mapeamos o que vem do Java para o que o nosso App espera
-      id: c.value,      // O 'value' do Java é o ID (1, 2, 3...)
-      nome: c.label,    // O 'label' do Java é o nome (Eletrônicos, etc)
-      value: c.value,
-      label: c.label
-    }));
+      const formatadas = data.map((c: any) => ({
+        id: c.value,
+        nome: c.label,
+        value: c.value,
+        label: c.label
+      }));
 
-    setCategorias(formatadas);
-  } catch (err) {
-    console.error("Erro ao carregar categorias", err);
-  }
-};
+      setCategorias(formatadas);
+    } catch (err) {
+      console.error("Erro ao carregar categorias", err);
+    }
+  };
 
-  // =========================
-  // CARREGAR POSTOS
-  // =========================
   const carregarPostos = async () => {
     try {
       const data = await listarPostosService();
@@ -72,86 +63,100 @@ const carregarCategorias = async () => {
   };
 
   // =========================
-  // FILTRO (eletrônicos → delegacia)
+  // FILTRO 
   // =========================
   const postosFiltrados =
-  categoriaSelecionada.some((c) =>
-    (c?.nome ?? "").toLowerCase().includes("eletr")
-  )
-    ? postos.filter((p) =>
+    categoriaSelecionada.some((c) =>
+      (c?.nome ?? "").toLowerCase().includes("eletr")
+    )
+      ? postos.filter((p) =>
         (p?.nome ?? "").toLowerCase().includes("delegacia")
       )
-    : postos;
+      : postos;
 
-  // =========================
-  // SALVAR
-  // =========================
 
-// No SALVAR, corrija o append das categorias e campos de endereço:
-const salvar = async () => {
-  try {
-    setLoading(true);
-    const formData = new FormData();
+  const salvar = async () => {
+    try {
+      if (!nome?.trim()) {
+        Alert.alert("Erro", "Informe o nome do objeto.");
+        return;
+      }
 
-    formData.append("nome", nome);
-    formData.append("descricao", descricao);
-    
-    // Verifique no seu Backend se o campo é 'enderecoAchado' ou 'enderecoEncontro'
-    // Geralmente se usa o mesmo nome do DTO do Java
-    formData.append(tipo === "ACHADO" ? "enderecoEncontro" : "enderecoPerdido", enderecoEncontro);
+      if (!descricao?.trim()) {
+        Alert.alert("Erro", "Informe a descrição.");
+        return;
+      }
 
-    if (dataEncontro) {
-      const dataFormatada = dataEncontro.toISOString().split("T")[0];
-      formData.append(tipo === "ACHADO" ? "dataEncontro" : "dataPerdido", dataFormatada);
-    }
+      if (!dataEncontro) {
+        Alert.alert("Erro", "Selecione a data do encontro.");
+        return;
+      }
 
-    if (latitude) formData.append(tipo === "ACHADO" ? "latitudeAchado" : "latitude", String(latitude));
-    if (longitude) formData.append(tipo === "ACHADO" ? "longitudeAchado" : "longitude", String(longitude));
+      if (!postoId) {
+        Alert.alert("Erro", "Selecione um posto de retirada.");
+        return;
+      }
 
-    // CORREÇÃO DAS CATEGORIAS
-    categoriaSelecionada.forEach((c: any) => {
-      // Usa 'id' ou 'value' dependendo de como você salvou no estado
-      const catId = c.id || c.value; 
-      if (catId) formData.append("categorias", String(catId));
-    });
+      if (categoriaSelecionada.length === 0) {
+        Alert.alert("Erro", "Selecione ao menos uma categoria.");
+        return;
+      }
+      setLoading(true);
+      const formData = new FormData();
 
-    if (tipo === "ACHADO" && postoId) {
-      formData.append("postoRetiradaId", String(postoId));
-    }
+      formData.append("nome", nome);
+      formData.append("descricao", descricao);
 
-    // IMAGENS (Tratamento para Android)
-    if (imagens && imagens.length > 0) {
-      imagens.forEach((img: any) => {
-        const uri = img.uri;
-        const name = img.fileName || uri.split("/").pop() || "image.jpg";
-        const type = img.mimeType || "image/jpeg";
+      formData.append(tipo === "ACHADO" ? "enderecoEncontro" : "enderecoPerdido", enderecoEncontro);
 
-        formData.append("imagens", {
-          uri,
-          name,
-          type,
-        } as any);
+      if (dataEncontro) {
+        const dataFormatada = dataEncontro.toISOString().split("T")[0];
+        formData.append(tipo === "ACHADO" ? "dataEncontro" : "dataPerdido", dataFormatada);
+      }
+
+      if (latitude) formData.append(tipo === "ACHADO" ? "latitudeAchado" : "latitude", String(latitude));
+      if (longitude) formData.append(tipo === "ACHADO" ? "longitudeAchado" : "longitude", String(longitude));
+
+      categoriaSelecionada.forEach((c: any) => {
+        const catId = c.id || c.value;
+        if (catId) formData.append("categorias", String(catId));
       });
-    }
 
-    if (tipo === "ACHADO") {
-      await criarObjetoAchado(formData);
-    } else {
-      await criarObjetoPerdido(formData);
-    }
-    
-    Alert.alert("Sucesso", "Objeto cadastrado com sucesso!");
-  } catch (err: any) {
-    console.error("Erro ao salvar objeto", err.response?.data || err.message);
-    Alert.alert("Erro", "O servidor recusou o cadastro. Verifique os campos.");
-  } finally {
-    setLoading(false);
-  }
-};
+      if (tipo === "ACHADO" && postoId) {
+        formData.append("postoRetiradaId", String(postoId));
+      }
 
-  // =========================
-  // INIT
-  // =========================
+      if (imagens && imagens.length > 0) {
+        imagens.forEach((img: any) => {
+          const uri = img.uri;
+          const name = img.fileName || uri.split("/").pop() || "image.jpg";
+          const type = img.mimeType || "image/jpeg";
+
+          formData.append("imagens", {
+            uri,
+            name,
+            type,
+          } as any);
+        });
+      }
+
+      if (tipo === "ACHADO") {
+        await criarObjetoAchado(formData);
+      } else {
+        await criarObjetoPerdido(formData);
+      }
+
+      Alert.alert("Sucesso", "Objeto cadastrado com sucesso!");
+      return true
+    } catch (err: any) {
+      console.error("Erro ao salvar objeto", err.response?.data || err.message);
+      Alert.alert("Erro", "O servidor recusou o cadastro. Verifique os campos.");
+      return false
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     carregarCategorias();
     carregarPostos();
@@ -174,8 +179,6 @@ const salvar = async () => {
 
     loading,
     salvar,
-
-    // ✅ ADICIONADOS (corrigido)
     enderecoEncontro,
     setEnderecoEncontro,
 

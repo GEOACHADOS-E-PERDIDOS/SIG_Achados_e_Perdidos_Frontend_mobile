@@ -14,9 +14,9 @@ import {
 import { useCadastroObjeto } from "../hooks/useCadastroObjeto";
 import MapaSelecao from "../components/MapaSelecao";
 import * as ImagePicker from "expo-image-picker";
-
+import { useNavigation } from "@react-navigation/native";
 export default function CadastroObjetoPerdido() {
-  // 1. Mudamos para "PERDIDO"
+  const navigation = useNavigation();
   const {
     nome,
     setNome,
@@ -60,7 +60,9 @@ export default function CadastroObjetoPerdido() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}>
       <Text style={styles.titulo}>Cadastrar Objeto Perdido</Text>
 
       {/* NOME */}
@@ -163,7 +165,7 @@ export default function CadastroObjetoPerdido() {
         style={styles.botaoSecundario}
         onPress={() => selecionarImagens(setImagens)}
       >
-        <Text style={styles.botaoTexto}>Selecionar Imagens (Opcional)</Text>
+        <Text style={styles.botaoTexto}>Selecionar Imagens</Text>
       </TouchableOpacity>
 
       {/* PREVIEW IMAGENS */}
@@ -181,10 +183,16 @@ export default function CadastroObjetoPerdido() {
       <TouchableOpacity
         style={[
           styles.botao,
-          { backgroundColor: "#e74c3c", opacity: loading ? 0.7 : 1 }, // Cor vermelha para Perdidos
+          { backgroundColor: "#e74c3c", opacity: loading ? 0.7 : 1 },
         ]}
-        onPress={() => {
-          if (!loading) salvar();
+        onPress={async () => {
+          console.log(" Disparando salvamento de objeto...");
+          if (!loading) {
+            const sucesso = await salvar();
+            if (sucesso) {
+              navigation.goBack();
+            }
+          }
         }}
         disabled={loading}
       >
@@ -194,20 +202,82 @@ export default function CadastroObjetoPerdido() {
           <Text style={styles.botaoTexto}>Cadastrar Objeto</Text>
         )}
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.botaoFechar}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.botaoTexto}>Fechar</Text>
+      </TouchableOpacity>
+
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#f5f6fa" },
-  titulo: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
-  input: { backgroundColor: "#fff", padding: 12, borderRadius: 8, marginBottom: 12 },
-  label: { fontWeight: "bold", marginTop: 10, marginBottom: 6 },
-  box: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 },
-  tag: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 20, backgroundColor: "#e0e0e0" },
-  tagSelected: { backgroundColor: "#e74c3c" }, // Vermelho para combinar
-  botao: { padding: 14, borderRadius: 10, alignItems: "center", marginTop: 20 },
-  botaoTexto: { color: "#fff", fontWeight: "bold" },
-  botaoSecundario: { backgroundColor: "#3498db", padding: 12, borderRadius: 10, alignItems: "center", marginTop: 10 },
-  previewContainer: { marginBottom: 10, padding: 10, backgroundColor: '#eee', borderRadius: 8, marginTop: 10 }
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#f5f6fa"
+  },
+  titulo: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20
+  },
+  input: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12
+  },
+  label: {
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 6
+  },
+  box: {
+    flexDirection: "row",
+    flexWrap: "wrap", gap: 8,
+    marginBottom: 10
+  },
+  tag: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    backgroundColor: "#e0e0e0"
+  },
+  tagSelected: {
+    backgroundColor: "#e74c3c"
+  },
+  botao: {
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 20
+  },
+  botaoTexto: {
+    color: "#fff",
+    fontWeight: "bold"
+  },
+  botaoSecundario: {
+    backgroundColor: "#3498db",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10
+  },
+  previewContainer: {
+    marginBottom: 10,
+    padding: 10,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+    marginTop: 10
+  },
+  botaoFechar: {
+    backgroundColor: "#7f8c8d",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
 });

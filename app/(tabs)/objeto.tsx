@@ -118,10 +118,10 @@ export default function ObjetosScreen() {
                 descricao: item.descricao,
                 enderecoEncontro: item.enderecoEncontro || "Consultar localização",
                 dataEncontro: item.dataEncontro,
-                status: item.status, 
+                status: item.status,
                 categorias: item.categorias || [],
                 imagemCompleta: item.caminhosImagens?.[0] ?? null,
-                nomePosto: item.nomePosto, 
+                nomePosto: item.nomePosto,
               }}
               onDelete={handleDelete}
               onClick={() => setObjetoSelecionado(item)}
@@ -145,7 +145,7 @@ export default function ObjetosScreen() {
 
             <ScrollView style={{ marginBottom: 10 }}>
               {objetoSelecionado && (
-                <ObjetoDetalhe 
+                <ObjetoDetalhe
                   obj={{
                     id: objetoSelecionado.id,
                     nome: objetoSelecionado.nome,
@@ -155,8 +155,8 @@ export default function ObjetosScreen() {
                     status: objetoSelecionado.status,
                     categorias: objetoSelecionado.categorias || [],
                     caminhosImagens: objetoSelecionado.caminhosImagens || [],
-                    nomePosto: objetoSelecionado.nomePosto, 
-                  }} 
+                    nomePosto: objetoSelecionado.nomePosto,
+                  }}
                 />
               )}
             </ScrollView>

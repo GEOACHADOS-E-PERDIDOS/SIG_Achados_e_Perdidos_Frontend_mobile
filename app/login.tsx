@@ -89,7 +89,7 @@ export default function Login() {
       />
 
       <TouchableOpacity style={styles.button} onPress={() => {
-    console.log("🟢 [LOGIN] Botão Entrar clicado");
+    console.log("[LOGIN] Botão Entrar clicado");
     handleLogin();
   }}>
         <Text style={styles.buttonText}>Entrar</Text>

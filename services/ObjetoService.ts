@@ -85,11 +85,8 @@ export const buscarObjetoPorId = async (id: number) => {
 
 export const criarObjetoAchado = async (formData: FormData) => {
   const config = await getAuthHeader();
-
+console.log(formData)
   const url = `${API_URL}/objetos/achados`;
-
-  console.log("🔥 [SERVICE] URL FINAL:", url);
-  console.log("🔥 [SERVICE] API_URL:", API_URL);
 
   return axios.post(url, formData, {
     ...config,

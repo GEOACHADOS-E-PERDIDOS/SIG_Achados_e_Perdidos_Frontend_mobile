@@ -4,7 +4,7 @@ import MapView, { Marker, Circle, UrlTile, PROVIDER_GOOGLE } from "react-native-
 import { useMapa } from "../hooks/useMapa";
 import { Posto } from "../services/HomeService";
 import ObjetoDetalhe from "./ObjetoDetalhe";
-import PostoDetalhe from "./PostoDetalhe"; // 1. IMPORTADO O COMPONENTE
+import PostoDetalhe from "./PostoDetalhe";
 import { Keyboard } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -34,8 +34,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
 
   const [tipoMapa, setTipoMapa] = useState<"hybrid" | "standard">("hybrid");
   const [pesquisaExpandida, setPesquisaExpandida] = useState(false);
-
-  // 2. ESTADOS ADICIONADOS PARA GERENCIAR O POSTO SELECIONADO
   const [postoSelecionado, setPostoSelecionado] = useState<any | null>(null);
 
   const alternarTipoMapa = () => {
@@ -111,7 +109,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
             title={posto.nome}
             description="📍 Clique para ver detalhes e objetos"
             pinColor="green"
-            // 3. CONECTANDO O CLIQUE DO POSTO PARA ABRIR O DETALHE
             onPress={() => setPostoSelecionado(posto)}
           />
         ))}
@@ -191,7 +188,6 @@ export default function Mapa({ refreshKey, postos }: Props) {
               </View>
             ) : (
               objetoSelecionado && (
-                // ScrollView adicionado aqui para garantir que se o objeto for grande, não quebre a tela
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <ObjetoDetalhe
                     obj={{
@@ -431,7 +427,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
-    marginHorizontal: 16, // Mantém margem bonita para o botão fechar do objeto
+    marginHorizontal: 16, 
   },
   loadingContainer: {
     padding: 30,

@@ -28,7 +28,6 @@ export default function ObjetoPostoCard({ obj, onClick }: Props) {
         onClick(obj.id);
     };
 
-    // Valida se existe uma URL válida de imagem passada pelo componente pai
     const temImagemValida = obj.imagemUrl && typeof obj.imagemUrl === "string" && obj.imagemUrl.trim() !== "";
 
     return (

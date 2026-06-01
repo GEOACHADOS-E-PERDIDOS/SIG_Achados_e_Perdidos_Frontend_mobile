@@ -28,7 +28,6 @@ export function useObjetos() {
         { value: "DESCARTADO", label: "Descartado" },
     ];
 
-    // 🔥 Modificado para montar as imagens E injetar o nome do posto associado
     const montarObjetoComImagens = async (obj: any) => {
         const caminhos: string[] = obj.caminhosImagens ?? [];
         const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
@@ -48,7 +47,7 @@ export function useObjetos() {
         return {
             ...obj,
             caminhosImagens: imagens,
-            nomePosto: nomePostoVinculado, // <-- Injeta o nome do posto estruturado
+            nomePosto: nomePostoVinculado, 
         };
     };
 

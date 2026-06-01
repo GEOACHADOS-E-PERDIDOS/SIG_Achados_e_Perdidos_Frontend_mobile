@@ -93,7 +93,7 @@ export default function PostoDetalhe({ posto, onClose }: Props) {
         async function carregarObjetos() {
             if (aba !== "objetos" || objetosCarregados) return;
             try {
-                setLoadingObjetos(true); // 🔥 Inicia o carregamento
+                setLoadingObjetos(true);
 
                 const objs = await buscarObjetosPosto(posto.id);
                 console.log("=== OBJETOS VINDOS DO SERVICE ===");
@@ -131,9 +131,9 @@ export default function PostoDetalhe({ posto, onClose }: Props) {
                 setObjetos(objsComImagem);
                 setObjetosCarregados(true);
             } catch (err) {
-                console.error("❌ Erro ao processar imagens dos objetos do posto:", err);
+                console.error("Erro ao processar imagens dos objetos do posto:", err);
             } finally {
-                setLoadingObjetos(false); // 🔥 Finaliza o carregamento, independente de sucesso ou erro
+                setLoadingObjetos(false);
             }
         }
         carregarObjetos();
@@ -527,17 +527,16 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
     },
-    // Adicione estes estilos no final do seu objeto do StyleSheet
-loadingContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-},
-loadingText: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-    marginTop: 8,
-},
+    loadingContainer: {
+        paddingVertical: 40,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 12,
+    },
+    loadingText: {
+        fontSize: 14,
+        color: "#666",
+        fontWeight: "500",
+        marginTop: 8,
+    },
 });

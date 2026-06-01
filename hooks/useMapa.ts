@@ -50,13 +50,11 @@ export function useMapa({ refreshKey }: UseMapaProps) {
     try {
       const objeto = await buscarObjetoPorId(id);
       
-      // Processamento das imagens em Base64
       const caminhos: string[] = objeto.caminhosImagens ?? [];
       const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
 
       let nomePostoVinculado = "";
 
-      // 🔥 Busca os dados do posto se ele existir no objeto achado
       if (objeto.postoId) {
         try {
           const posto = await buscarPostoPorId(objeto.postoId);
@@ -70,7 +68,7 @@ export function useMapa({ refreshKey }: UseMapaProps) {
       const objetoCompletoComImagens = {
         ...objeto,
         caminhosImagens: imagens,
-        nomePosto: nomePostoVinculado, // Armazena o nome do posto para usarmos na View
+        nomePosto: nomePostoVinculado, 
       };
 
       setObjetoSelecionado(objetoCompletoComImagens);

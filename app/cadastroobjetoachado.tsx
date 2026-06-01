@@ -15,6 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useCadastroObjeto } from "../hooks/useCadastroObjeto";
 import MapaSelecao from "../components/MapaSelecao";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "@react-navigation/native";
 
 export default function CadastroObjetoAchado() {
   const {
@@ -48,32 +49,34 @@ export default function CadastroObjetoAchado() {
     loading,
     salvar,
   } = useCadastroObjeto("ACHADO");
-
-  console.log("🧪 HOOK COMPLETO:", useCadastroObjeto("ACHADO"));
+  const navigation = useNavigation();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const selecionarImagens = async (setImagens: any) => {
-  const permission =
-    await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (!permission.granted) {
-    alert("Permissão para acessar galeria negada");
-    return;
-  }
+    if (!permission.granted) {
+      alert("Permissão para acessar galeria negada");
+      return;
+    }
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsMultipleSelection: true,
-    quality: 1,
-  });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
 
-  if (!result.canceled) {
-    setImagens(result.assets);
-  }
-};
+    if (!result.canceled) {
+      setImagens(result.assets);
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
+    >
 
       <Text style={styles.titulo}>
         Cadastrar Objeto Achado
@@ -105,67 +108,64 @@ export default function CadastroObjetoAchado() {
       />
 
       {/* DATA */}
-     <TouchableOpacity
-  style={styles.input}
-  onPress={() => setShowDatePicker(true)}
->
-  <Text>
-    {dataEncontro instanceof Date
-      ? dataEncontro.toLocaleDateString("pt-BR")
-      : "Selecionar data do encontro"}
-  </Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={styles.input}
+        onPress={() => setShowDatePicker(true)}
+      >
+        <Text>
+          {dataEncontro instanceof Date
+            ? dataEncontro.toLocaleDateString("pt-BR")
+            : "Selecionar data do encontro"}
+        </Text>
+      </TouchableOpacity>
 
-{showDatePicker && (
-  <DateTimePicker
-    value={dataEncontro instanceof Date ? dataEncontro : new Date()}
-    mode="date"
-    display="default"
-    onChange={(event, selectedDate) => {
-      setShowDatePicker(false);
+      {showDatePicker && (
+        <DateTimePicker
+          value={dataEncontro instanceof Date ? dataEncontro : new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShowDatePicker(false);
 
-      if (selectedDate) {
-        setDataEncontro(selectedDate);
-      }
-    }}
-  />
-)}
+            if (selectedDate) {
+              setDataEncontro(selectedDate);
+            }
+          }}
+        />
+      )}
 
       {/* CATEGORIAS */}
       <View style={styles.box}>
         {categorias.map((cat: any, index: number) => {
-            // 1. Prioridade de ID, se tudo falhar usa o index para evitar o erro de 'undefined'
-            const uniqueKey = cat.id || cat.value || `cat-${index}`;
-            
-            // 2. Compara pelo ID de forma segura
-            const selected = categoriaSelecionada.some(
+          const uniqueKey = cat.id || cat.value || `cat-${index}`;
+          const selected = categoriaSelecionada.some(
             (c: any) => (c.id || c.value) === (cat.id || cat.value)
-            );
+          );
 
-            return (
+          return (
             <TouchableOpacity
-                key={String(uniqueKey)} // <-- AQUI: Forçamos uma string única
-                style={[
+              key={String(uniqueKey)}
+              style={[
                 styles.tag,
                 selected && styles.tagSelected,
-                ]}
-                onPress={() => {
+              ]}
+              onPress={() => {
                 if (selected) {
-                    setCategoriaSelecionada(
+                  setCategoriaSelecionada(
                     categoriaSelecionada.filter(
-                        (c: any) => (c.id || c.value) !== (cat.id || cat.value)
+                      (c: any) => (c.id || c.value) !== (cat.id || cat.value)
                     )
-                    );
+                  );
                 } else {
-                    setCategoriaSelecionada([...categoriaSelecionada, cat]);
+                  setCategoriaSelecionada([...categoriaSelecionada, cat]);
                 }
-                }}
+              }}
             >
-                <Text style={selected ? { color: "#fff" } : {}}>{cat.label || cat.nome}</Text>
+              <Text style={selected ? { color: "#fff" } : {}}>{cat.label || cat.nome}</Text>
             </TouchableOpacity>
-            );
+          );
         })}
-        </View>
+      </View>
 
       {/* MAPA (LOCALIZAÇÃO) */}
       <Text style={styles.label}>
@@ -221,34 +221,45 @@ export default function CadastroObjetoAchado() {
       </TouchableOpacity>
 
       {/* PREVIEW IMAGENS */}
-            {imagens?.length > 0 && (
-            <View style={{ marginBottom: 10, padding: 10, backgroundColor: '#eee', borderRadius: 8 }}>
-                {imagens.map((img: any, i: number) => (
-                <Text key={img.uri || i} style={{ fontSize: 12, marginBottom: 4 }}>
-                    📷 {img?.fileName || img?.name || `Imagem ${i + 1}`}
-                </Text>
-                ))}
-            </View>
-            )}
+      {imagens?.length > 0 && (
+        <View style={{ marginBottom: 10, padding: 10, backgroundColor: '#eee', borderRadius: 8 }}>
+          {imagens.map((img: any, i: number) => (
+            <Text key={img.uri || i} style={{ fontSize: 12, marginBottom: 4 }}>
+              📷 {img?.fileName || img?.name || `Imagem ${i + 1}`}
+            </Text>
+          ))}
+        </View>
+      )}
 
       {/* BOTÃO SALVAR */}
       <TouchableOpacity
-  style={[
-    styles.botao, 
-    { backgroundColor: "#2ecc71", opacity: loading ? 0.7 : 1 }
-  ]}
-  onPress={() => {
-    console.log("🟢 Disparando salvamento de objeto...");
-    if (!loading) salvar();
-  }}
-  disabled={loading}
->
-  {loading ? (
-    <ActivityIndicator color="#fff" />
-  ) : (
-    <Text style={styles.botaoTexto}>Cadastrar Objeto</Text>
-  )}
-</TouchableOpacity>
+        style={[
+          styles.botao,
+          { backgroundColor: "#2ecc71", opacity: loading ? 0.7 : 1 }
+        ]}
+        onPress={async () => {
+          console.log(" Disparando salvamento de objeto...");
+          if (!loading) {
+            const sucesso = await salvar();
+            if (sucesso) {
+              navigation.goBack();
+            }
+          }
+        }}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.botaoTexto}>Cadastrar Objeto</Text>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.botaoFechar}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.botaoTexto}>Fechar</Text>
+      </TouchableOpacity>
 
     </ScrollView>
   );
@@ -325,8 +336,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   botaoSecundario: {
-  backgroundColor: "#3498db",
-  padding: 12,
+    backgroundColor: "#3498db",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  botaoFechar: {
+  backgroundColor: "#7f8c8d",
+  padding: 14,
   borderRadius: 10,
   alignItems: "center",
   marginTop: 10,
