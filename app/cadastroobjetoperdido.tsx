@@ -173,7 +173,7 @@ export default function CadastroObjetoPerdido() {
         <View style={styles.previewContainer}>
           {imagens.map((img: any, i: number) => (
             <Text key={img.uri || i} style={{ fontSize: 12, marginBottom: 4 }}>
-              📷 {img?.fileName || img?.name || `Imagem ${i + 1}`}
+              {img?.fileName || img?.name || `Imagem ${i + 1}`}
             </Text>
           ))}
         </View>

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "geoachados-mobile",
-    "slug": "geoachados-mobile",
+    "name": "GeoAchados",
+    "slug": "geoachados",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/LOGO_geoachados.png",
-    "scheme": "geoachadosmobile",
+    "scheme": "geoachados",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -13,14 +13,12 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/favicon.ico",
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.geoachadosmobile"
+      "package": "com.anonymous.geoachados"
     },
     "web": {
       "output": "static",
