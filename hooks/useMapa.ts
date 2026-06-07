@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config/api";
-import { buscarObjetoPorId, buscarImagens } from "../services/ObjetoService"; 
+import { buscarObjetoPorId, buscarImagens } from "../services/ObjetoService";
 // Importando o service de busca de postos
-import { buscarPostoPorId } from "../services/PostoService"; 
+import { buscarPostoPorId } from "../services/PostoService";
 
 export type ObjetoMapa = {
   id: number;
@@ -49,7 +49,7 @@ export function useMapa({ refreshKey }: UseMapaProps) {
     setCarregandoDetalhes(true);
     try {
       const objeto = await buscarObjetoPorId(id);
-      
+
       const caminhos: string[] = objeto.caminhosImagens ?? [];
       const imagens = caminhos.length > 0 ? await buscarImagens(caminhos) : [];
 
@@ -68,7 +68,7 @@ export function useMapa({ refreshKey }: UseMapaProps) {
       const objetoCompletoComImagens = {
         ...objeto,
         caminhosImagens: imagens,
-        nomePosto: nomePostoVinculado, 
+        nomePosto: nomePostoVinculado,
       };
 
       setObjetoSelecionado(objetoCompletoComImagens);
@@ -80,13 +80,17 @@ export function useMapa({ refreshKey }: UseMapaProps) {
   };
 
   const limparBusca = () => {
-    setBusca(""); 
-    buscarObjetos(""); 
+    setBusca("");
+    buscarObjetos("");
   };
 
   const objetosFiltrados = objetos.filter((obj) => {
+    if (obj.status === "DEVOLVIDO") return false;
+    if (obj.status === "DESCARTADO") return false;
+
     if (obj.status === "PERDIDO" && !mostrarPerdidos) return false;
     if (obj.status === "DISPONIVEL" && !mostrarAchados) return false;
+
     return true;
   });
 

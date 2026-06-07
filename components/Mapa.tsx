@@ -95,7 +95,7 @@ export default function Mapa({ refreshKey, postos }: Props) {
                 latitude: obj.latitudeEncontro,
                 longitude: obj.longitudeEncontro
               }}
-              pinColor={obj.status === "PERDIDO" ? "red" : "cyan"}
+              pinColor={obj.status === "PERDIDO" ? "red" : "dodgerblue"}
               onPress={() => abrirDetalhe(obj.id)}
             />
           </View>
@@ -248,8 +248,20 @@ export default function Mapa({ refreshKey, postos }: Props) {
           style={[styles.filterBtn, mostrarPostos && styles.activePosto]}
         >
           <View style={styles.filterContent}>
-            <Ionicons name="business-outline" size={16} color="#555" />
-            <Text style={styles.filterText}>Postos</Text>
+            <Ionicons
+              name="business-outline"
+              size={16}
+              color={mostrarPostos ? "#fff" : "#555"}
+            />
+
+            <Text
+              style={[
+                styles.filterText,
+                mostrarPostos && styles.filterTextActive,
+              ]}
+            >
+              Postos
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -258,8 +270,20 @@ export default function Mapa({ refreshKey, postos }: Props) {
           style={[styles.filterBtn, mostrarPerdidos && styles.activePerdido]}
         >
           <View style={styles.filterContent}>
-            <Ionicons name="close-circle-outline" size={16} color="#555" />
-            <Text style={styles.filterText}>Perdidos</Text>
+            <Ionicons
+              name="close-circle-outline"
+              size={16}
+              color={mostrarPerdidos ? "#fff" : "#555"}
+            />
+
+            <Text
+              style={[
+                styles.filterText,
+                mostrarPerdidos && styles.filterTextActive,
+              ]}
+            >
+              Perdidos
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -268,8 +292,20 @@ export default function Mapa({ refreshKey, postos }: Props) {
           style={[styles.filterBtn, mostrarAchados && styles.activeAchado]}
         >
           <View style={styles.filterContent}>
-            <Ionicons name="checkmark-circle-outline" size={16} color="#555" />
-            <Text style={styles.filterText}>Achados</Text>
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={16}
+              color={mostrarAchados ? "#fff" : "#555"}
+            />
+
+            <Text
+              style={[
+                styles.filterText,
+                mostrarAchados && styles.filterTextActive,
+              ]}
+            >
+              Achados
+            </Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -400,9 +436,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#555",
   },
-  activePosto: { backgroundColor: "#69ffa7" },
-  activePerdido: { backgroundColor: "#ffcdd2" },
-  activeAchado: { backgroundColor: "#bbdefb" },
+  filterTextActive: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  activePosto: { backgroundColor: "#2ecc71" },
+  activePerdido: { backgroundColor: "#e74c3c" },
+  activeAchado: { backgroundColor: "#3498db" },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -427,7 +467,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: 10,
-    marginHorizontal: 16, 
+    marginHorizontal: 16,
   },
   loadingContainer: {
     padding: 30,
@@ -445,4 +485,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
+
 });

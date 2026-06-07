@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+
+
+
+
 import {
   Alert,
   View,
@@ -39,7 +45,14 @@ export default function PerfilScreen() {
     deletarObjeto,
   } = usePerfil();
 
-  
+
+  const router = useRouter();
+
+  const logout = async () => {
+    await AsyncStorage.removeItem("token");
+
+    router.replace("/login");
+  };
 
   const [modalStatusVisible, setModalStatusVisible] =
     useState(false);
@@ -47,73 +60,77 @@ export default function PerfilScreen() {
   const [objetoStatusSelecionado, setObjetoStatusSelecionado] =
     useState<any>(null);
 
-    const abrirModalStatus = (
-        id: number,
-        status: string
-        ) => {
-        setObjetoStatusSelecionado({
-            id,
-            status,
-        });
+  const abrirModalStatus = (
+    id: number,
+    status: string
+  ) => {
+    setObjetoStatusSelecionado({
+      id,
+      status,
+    });
 
-        setModalStatusVisible(true);
-        };
+    setModalStatusVisible(true);
+  };
 
-    const confirmarStatus = async (
-        novoStatus: string
-        ) => {
-        if (!objetoStatusSelecionado) {
-            return;
-        }
-
-        try {
-            await atualizarStatus(
-            objetoStatusSelecionado.id,
-            novoStatus
-            );
-
-            Alert.alert(
-            "Sucesso",
-            "Status atualizado."
-            );
-
-            setModalStatusVisible(false);
-
-        } catch (err) {
-            Alert.alert(
-            "Erro",
-            "Não foi possível atualizar."
-            );
-        }
-        };
-
-    const postosFiltrados =
-        objetoEditando?.categorias?.some(
-            (c: any) =>
-            c.nome
-                ?.toLowerCase()
-                .includes("eletr")
-        )
-            ? postos.filter((posto: any) =>
-                posto.nome
-                .toLowerCase()
-                .includes("delegacia")
-            )
-            : postos;
-
-    if (loading) {
-        return (
-        <View style={styles.loadingContainer}>
-            <ActivityIndicator
-            size="large"
-            color="#1e2a38"
-            />
-        </View>
-        );
+  const confirmarStatus = async (
+    novoStatus: string
+  ) => {
+    if (!objetoStatusSelecionado) {
+      return;
     }
+
+    try {
+      await atualizarStatus(
+        objetoStatusSelecionado.id,
+        novoStatus
+      );
+
+      Alert.alert(
+        "Sucesso",
+        "Status atualizado."
+      );
+
+      setModalStatusVisible(false);
+
+    } catch (err) {
+      Alert.alert(
+        "Erro",
+        "Não foi possível atualizar."
+      );
+    }
+  };
+
+  const postosFiltrados =
+    objetoEditando?.categorias?.some(
+      (c: any) =>
+        c.nome
+          ?.toLowerCase()
+          .includes("eletr")
+    )
+      ? postos.filter((posto: any) =>
+        posto.nome
+          .toLowerCase()
+          .includes("delegacia")
+      )
+      : postos;
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#1e2a38"
+        />
+      </View>
+    );
+  }
   console.log("POSTOS FILTRADOS", postosFiltrados);
+
   return (
+
     <View style={styles.container}>
+      {/* PERFIL */}
+
       {/* PERFIL */}
 
       <View style={styles.card}>
@@ -122,16 +139,25 @@ export default function PerfilScreen() {
             Meu Perfil
           </Text>
 
-          <TouchableOpacity
-            style={styles.botaoEditar}
-            onPress={() =>
-              setEditandoPerfil(true)
-            }
-          >
-            <Text style={styles.botaoTexto}>
-              Editar
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.botoesPerfil}>
+            <TouchableOpacity
+              style={styles.botaoEditar}
+              onPress={() => setEditandoPerfil(true)}
+            >
+              <Text style={styles.botaoTexto}>
+                Editar
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.botaoSair}
+              onPress={logout}
+            >
+              <Text style={styles.botaoTexto}>
+                Sair
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={styles.info}>
@@ -152,20 +178,21 @@ export default function PerfilScreen() {
       <FlatList
         data={objetos}
         keyExtractor={(item) =>
-            item.id.toString()
+          item.id.toString()
         }
         renderItem={({ item }) => (
-            <ObjetoCardPerfilMobile
-                obj={item}
-                onDelete={deletarObjeto}
-                onEditObjeto={setObjetoEditando}
-                onEditStatus={abrirModalStatus}
-                onClick={() =>
-                    setObjetoSelecionado(item)
-                }
-                />
+          <ObjetoCardPerfilMobile
+            obj={item}
+            onDelete={deletarObjeto}
+            onEditObjeto={setObjetoEditando}
+            onEditStatus={abrirModalStatus}
+            onClick={() =>
+              setObjetoSelecionado(item)
+            }
+            podeAlterarStatus={usuario?.isPosto === true}
+          />
         )}
-        />
+      />
 
       {/* MODAL PERFIL */}
 
@@ -252,15 +279,15 @@ export default function PerfilScreen() {
               >
                 Editar Objeto
               </Text>
-                <Text
-                    style={{
-                    fontWeight: "bold",
-                    marginTop: 10,
-                    marginBottom: 5,
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  marginTop: 10,
+                  marginBottom: 5,
                 }}
-                >
-                    Nome
-            </Text>
+              >
+                Nome
+              </Text>
               <TextInput
                 style={styles.input}
                 placeholder="Nome"
@@ -276,14 +303,14 @@ export default function PerfilScreen() {
               />
 
               <Text
-                    style={{
-                    fontWeight: "bold",
-                    marginTop: 10,
-                    marginBottom: 5,
+                style={{
+                  fontWeight: "bold",
+                  marginTop: 10,
+                  marginBottom: 5,
                 }}
-                >
-                    Descrição
-            </Text>
+              >
+                Descrição
+              </Text>
 
               <TextInput
                 style={[
@@ -303,56 +330,56 @@ export default function PerfilScreen() {
                 }
               />
 
-                {
+              {
                 objetoEditando?.postoId !== null &&
                 objetoEditando?.postoId !== undefined && (
-                    <>
+                  <>
                     <Text
-                        style={{
+                      style={{
                         fontWeight: "bold",
                         marginTop: 10,
                         marginBottom: 5,
-                        }}
+                      }}
                     >
-                        Posto de Retirada
+                      Posto de Retirada
                     </Text>
 
                     <View
-                        style={{
+                      style={{
                         borderWidth: 1,
                         borderColor: "#ccc",
                         borderRadius: 8,
                         marginBottom: 15,
-                        }}
+                      }}
                     >
-                        <Picker
+                      <Picker
                         selectedValue={
-                            objetoEditando.postoId
+                          objetoEditando.postoId
                         }
                         onValueChange={(value) => {
-                        console.log("POSTO SELECIONADO:", value);
-                        if (!objetoEditando) return;
+                          console.log("POSTO SELECIONADO:", value);
+                          if (!objetoEditando) return;
 
-                        setObjetoEditando((prev: any) => ({
+                          setObjetoEditando((prev: any) => ({
                             ...prev,
                             postoId: Number(value),
-                        }));
+                          }));
                         }}
-                        >
+                      >
                         {postosFiltrados.map(
-                            (posto: any) => (
+                          (posto: any) => (
                             <Picker.Item
-                                key={posto.id}
-                                label={posto.nome}
-                                value={posto.id}
+                              key={posto.id}
+                              label={posto.nome}
+                              value={posto.id}
                             />
-                            )
+                          )
                         )}
-                        </Picker>
+                      </Picker>
                     </View>
-                    </>
+                  </>
                 )
-                }
+              }
 
               <TouchableOpacity
                 style={styles.btnSalvar}
@@ -387,125 +414,125 @@ export default function PerfilScreen() {
         animationType="slide"
         transparent={true}
         onRequestClose={() =>
-            setObjetoSelecionado(null)
+          setObjetoSelecionado(null)
         }
-        >
+      >
         <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+          <View style={styles.modalContent}>
             <ScrollView
-                style={{ marginBottom: 10 }}
+              style={{ marginBottom: 10 }}
             >
-                {objetoSelecionado && (
+              {objetoSelecionado && (
                 <ObjetoDetalhe
-                    obj={{
+                  obj={{
                     id: objetoSelecionado.id,
                     nome: objetoSelecionado.nome,
                     descricao:
-                        objetoSelecionado.descricao,
+                      objetoSelecionado.descricao,
 
                     enderecoEncontro:
-                        objetoSelecionado.enderecoEncontro ||
-                        "Consultar localização",
+                      objetoSelecionado.enderecoEncontro ||
+                      "Consultar localização",
 
                     dataEncontro:
-                        objetoSelecionado.dataEncontro,
+                      objetoSelecionado.dataEncontro,
 
                     status:
-                        objetoSelecionado.status,
+                      objetoSelecionado.status,
 
                     categorias:
-                        objetoSelecionado.categorias ||
-                        [],
+                      objetoSelecionado.categorias ||
+                      [],
 
                     caminhosImagens:
-                        objetoSelecionado.caminhosImagens ||
-                        [],
+                      objetoSelecionado.caminhosImagens ||
+                      [],
 
                     nomePosto:
-                        objetoSelecionado.nomePosto,
-                    }}
+                      objetoSelecionado.nomePosto,
+                  }}
                 />
-                )}
+              )}
             </ScrollView>
 
             <TouchableOpacity
-                style={styles.btnFecharModal}
-                onPress={() =>
+              style={styles.btnFecharModal}
+              onPress={() =>
                 setObjetoSelecionado(null)
-                }
+              }
             >
-                <Text style={styles.txtBotao}>
+              <Text style={styles.txtBotao}>
                 Fechar Detalhes
-                </Text>
+              </Text>
             </TouchableOpacity>
-            </View>
+          </View>
         </View>
-        </Modal>
+      </Modal>
 
 
-        {/*Modal Status*/}
+      {/*Modal Status*/}
 
-        <Modal
-            visible={modalStatusVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() =>
-                setModalStatusVisible(false)
-            }
+      <Modal
+        visible={modalStatusVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() =>
+          setModalStatusVisible(false)
+        }
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.statusModal}>
+
+            <Text style={styles.modalTitle}>
+              Alterar Status
+            </Text>
+
+            <TouchableOpacity
+              style={styles.statusOption}
+              onPress={() =>
+                confirmarStatus("DISPONIVEL")
+              }
             >
-            <View style={styles.modalOverlay}>
-                <View style={styles.statusModal}>
+              <Text>Disponível</Text>
+            </TouchableOpacity>
 
-                <Text style={styles.modalTitle}>
-                    Alterar Status
-                </Text>
+            <TouchableOpacity
+              style={styles.statusOption}
+              onPress={() =>
+                confirmarStatus("DEVOLVIDO")
+              }
+            >
+              <Text>Devolvido</Text>
+            </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.statusOption}
-                    onPress={() =>
-                    confirmarStatus("DISPONIVEL")
-                    }
-                >
-                    <Text>Disponível</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statusOption}
+              onPress={() =>
+                confirmarStatus("PERDIDO")
+              }
+            >
+              <Text>Perdido</Text>
+            </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.statusOption}
-                    onPress={() =>
-                    confirmarStatus("DEVOLVIDO")
-                    }
-                >
-                    <Text>Devolvido</Text>
-                </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() =>
+                setModalStatusVisible(false)
+              }
+            >
+              <Text
+                style={{
+                  color: "#fff",
+                }}
+              >
+                Fechar
+              </Text>
+            </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.statusOption}
-                    onPress={() =>
-                    confirmarStatus("PERDIDO")
-                    }
-                >
-                    <Text>Perdido</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={() =>
-                    setModalStatusVisible(false)
-                    }
-                >
-                    <Text
-                    style={{
-                        color: "#fff",
-                    }}
-                    >
-                    Fechar
-                    </Text>
-                </TouchableOpacity>
-
-                </View>
-            </View>
-            </Modal>
-    </View>
+          </View>
+        </View>
+      </Modal>
+    </View >
   );
 }
 
@@ -532,17 +559,19 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
+    alignItems: "flex-start",
   },
 
   titulo: {
     fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 10,
   },
 
   info: {
     fontSize: 15,
-    marginBottom: 6,
+    marginTop: 4,
+    color: "#333",
   },
 
   tituloObjetos: {
@@ -578,6 +607,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
+    alignItems: "center",
   },
 
   botaoObjeto: {
@@ -643,61 +673,73 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-modalContent: {
-  backgroundColor: "#ffffff",
-  width: "92%",
-  maxHeight: "85%",
-  borderRadius: 16,
-  padding: 20,
+  modalContent: {
+    backgroundColor: "#ffffff",
+    width: "92%",
+    maxHeight: "85%",
+    borderRadius: 16,
+    padding: 20,
 
-  shadowColor: "#000",
-  shadowOffset: {
-    width: 0,
-    height: 4,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
-  shadowOpacity: 0.3,
-  shadowRadius: 5,
-  elevation: 8,
-},
 
-btnFecharModal: {
-  backgroundColor: "#1e2a38",
-  paddingVertical: 14,
-  borderRadius: 8,
-  alignItems: "center",
-},
+  btnFecharModal: {
+    backgroundColor: "#1e2a38",
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
 
-txtBotao: {
-  color: "#ffffff",
-  fontWeight: "bold",
-  fontSize: 14,
-},
+  txtBotao: {
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
 
-statusModal: {
-  width: "85%",
-  backgroundColor: "#fff",
-  borderRadius: 12,
-  padding: 20,
-},
+  statusModal: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+  },
 
-modalTitle: {
-  fontSize: 18,
-  fontWeight: "bold",
-  marginBottom: 15,
-  textAlign: "center",
-},
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
 
-statusOption: {
-  padding: 14,
-  borderBottomWidth: 1,
-  borderBottomColor: "#eee",
-},
+  statusOption: {
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
 
-cancelButton: {
-  marginTop: 15,
-  backgroundColor: "#e74c3c",
-  padding: 12,
-  borderRadius: 8,
-  alignItems: "center",
-},
+  cancelButton: {
+    marginTop: 15,
+    backgroundColor: "#e74c3c",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  botoesPerfil: {
+    gap: 8,
+    alignItems: "flex-end",
+  },
+
+  botaoSair: {
+    backgroundColor: "#e74c3c",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
 });

@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react"; 
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -39,6 +39,7 @@ type Props = {
   onDelete: (
     id: number
   ) => void;
+  podeAlterarStatus: boolean;
 };
 
 export default function ObjetoCardPerfilMobile({
@@ -46,23 +47,25 @@ export default function ObjetoCardPerfilMobile({
   onEditObjeto,
   onEditStatus,
   onDelete,
-  onClick
+  onClick,
+  podeAlterarStatus,
 }: Props) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "DISPONIVEL": return "#2ecc71";
       case "DEVOLVIDO": return "#3498db";
       case "PERDIDO": return "#e74c3c";
-      default:return "#333";
+      default: return "#333";
     }
   };
 
   return (
+    
     <TouchableOpacity
-        style={styles.cardObjeto}
-        activeOpacity={0.85}
-        onPress={onClick}
-        >
+      style={styles.cardObjeto}
+      activeOpacity={0.85}
+      onPress={onClick}
+    >
       {/* IMAGEM */}
       <View style={styles.cardImageContainer}>
         {obj.imagemCompleta?.uri && (
@@ -119,8 +122,8 @@ export default function ObjetoCardPerfilMobile({
           </Text>{" "}
           {obj.dataEncontro
             ? formatarData(
-                obj.dataEncontro
-              )
+              obj.dataEncontro
+            )
             : "Não informada"}
         </Text>
 
@@ -132,13 +135,13 @@ export default function ObjetoCardPerfilMobile({
             Categorias:
           </Text>{" "}
           {obj.categorias &&
-          obj.categorias.length > 0
+            obj.categorias.length > 0
             ? obj.categorias
-                .map(
-                  (cat: Categoria) =>
-                    cat.nome
-                )
-                .join(", ")
+              .map(
+                (cat: Categoria) =>
+                  cat.nome
+              )
+              .join(", ")
             : "Sem categoria"}
         </Text>
 
@@ -178,22 +181,24 @@ export default function ObjetoCardPerfilMobile({
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[
-            styles.actionButton,
-            styles.statusButton,
-          ]}
-          onPress={() =>
-            onEditStatus(
-              obj.id,
-              obj.status
-            )
-          }
-        >
-          <Text style={styles.actionText}>
-            Status
-          </Text>
-        </TouchableOpacity>
+        {(podeAlterarStatus || obj.status === "PERDIDO") && (
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              styles.statusButton,
+            ]}
+            onPress={() =>
+              onEditStatus(
+                obj.id,
+                obj.status
+              )
+            }
+          >
+            <Text style={styles.actionText}>
+              Status
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[
